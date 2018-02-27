@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <artifactId>hollow-jar-testsuite</artifactId>
+    <groupId>org.wildfly.swarm</groupId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>proto</artifactId>
+
+  <properties>
+    <hollow.type>web</hollow.type>
+  </properties>
+
+  <!--
+  org/wildfly/swarm/servers/web/2018.3.0-SNAPSHOT/web-2018.3.0-SNAPSHOT-hollowswarm.jar
+  -->
+  <build>
+    <plugins>
+
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifact>org/wildfly/swarm/servers:${hollow.type}:2018.3.0-SNAPSHOT:jar:hollowswarm</artifact>
+              <stripVersion>true</stripVersion>
+              <outputDirectory>${project.build.directory}</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+
+      <plugin>
+        <groupId>com.bazaarvoice.maven.plugins</groupId>
+        <artifactId>process-exec-maven-plugin</artifactId>
+        <version>0.7</version>
+        <executions>
+          <!--Start process -->
+          <execution>
+            <id>switchboard-process</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>start</goal>
+            </goals>
+            <configuration>
+              <name>hollow-jar</name>
+              <workingDir>${project.build.directory}/workdir</workingDir>
+              <waitForInterrupt>false</waitForInterrupt>
+             <!-- <healthcheckUrl>http://localhost:8080</healthcheckUrl>-->
+              <waitAfterLaunch>15</waitAfterLaunch>
+              <arguments>
+                <argument>java</argument>
+                <argument>-jar</argument>
+                <argument>${project.build.directory}/${hollow.type}-hollowswarm.jar</argument>
+                <!--<argument>server</argument>
+                <argument>${basedir}/bin/switchboard.yaml</argument>-->
+              </arguments>
+            </configuration>
+          </execution>
+
+          <!--Stop all processes in reverse order-->
+          <execution>
+            <id>stop-all</id>
+            <phase>post-integration-test</phase>
+            <goals>
+              <goal>stop-all</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
